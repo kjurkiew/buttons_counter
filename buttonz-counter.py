@@ -9,68 +9,24 @@ def opening_file(file_name):
     file_with_websites = open(file_name)
     try:
         websites = file_with_websites.read()
-
     finally:
         file_with_websites.close()
 
     return websites
 
 
-def creating_list_with_websites(websites_file):
-    webRegex = re.findall(r'(.+)', websites_file)
+def creating_list_with_websites(websites):
+    list_with_websites = list(re.findall(r'(.+)', websites))
 
-    return webRegex
-
-
-def checking_if_site_have_http(websites):
-    websites_to_check = list(websites)
-    for i in range(len(websites_to_check)):
-        if websites_to_check[i][:4] != 'http':
-            websites_to_check[i] = 'http://' + websites_to_check[i]
-
-    return websites_to_check
+    return list_with_websites
 
 
-def downloading_site(website):
-    site = requests.get(website)
-    site.raise_for_status()
+def checking_if_site_have_http(list_with_websites):
+    for i in range(len(list_with_websites)):
+        if list_with_websites[i][:4] != 'http':
+            list_with_websites[i] = 'http://' + list_with_websites[i]
 
-    soup = bs4.BeautifulSoup(site.text, "html.parser")
-
-    return soup
-
-
-def deleting_what_finded(soup, button):
-    for i in range(len(button)):
-        soup= soup.replace(button[i], '')
-
-    return soup
-
-
-def finding_buttons(soup):
-    html_buttons = re.findall(r'<button.*?>.*?</button>', soup, re.I)
-    soup = deleting_what_finded(soup, html_buttons)
-    submit_buttons = re.findall(r'<input.+?type="submit".*?value=".*?>', soup, re.I)
-    soup = deleting_what_finded(soup, submit_buttons)
-    reset_buttons = re.findall(r'<input.+?type="reset".*?value=".*?>', soup, re.I)
-    soup = deleting_what_finded(soup, reset_buttons)
-    button_buttons = re.findall(r'<input.+?type="button".*?value=".*?>', soup, re.I)
-    soup = deleting_what_finded(soup, button_buttons)
-    css_bttns_small = re.findall(r'<.*?class="btn btn-small".*?>', soup, re.I)
-    soup = deleting_what_finded(soup, css_bttns_small)
-    css_buttons = re.findall(r'<.*?class=".*?button".*?>.+?<', soup, re.I)
-    css_buttons2 = re.findall(r'<.*?class=".*?button.*?">\s', soup, re.I)
-
-    buttons = [html_buttons, submit_buttons, reset_buttons, button_buttons, css_bttns_small, css_buttons, css_buttons2]
-
-    return buttons
-
-
-def calculating_buttons(buttons):
-    flat_buttons = list(itertools.chain(*buttons))
-    number_of_buttons = len(flat_buttons)
-
-    return number_of_buttons
+    return list_with_websites
 
 
 def sites_buttons_calculate(websites):
@@ -82,6 +38,47 @@ def sites_buttons_calculate(websites):
         buttons_list.append(str(calculated_buttons))
 
     return buttons_list
+
+
+def downloading_site(website):
+    site = requests.get(website)
+    site.raise_for_status()
+
+    soup = bs4.BeautifulSoup(site.text, "html.parser")
+
+    return soup
+
+
+def finding_buttons(result):
+    soup = bs(result, 'lxml')
+    html_buttons = soup.find_all("button")
+    result = deleting_what_finded(result, html_buttons)
+    submit_buttons = soup.find_all('input', {'type': 'submit'})
+    result = deleting_what_finded(result, submit_buttons)
+    reset_buttons = soup.find_all('input', {'type': 'reset'})
+    result = deleting_what_finded(result, reset_buttons)
+    button_buttons = soup.find_all('input', {'type': 'button'})
+    result = deleting_what_finded(result, button_buttons)
+    css_bttns_small = soup.find_all(class_=re.compile("btn"))
+    result = deleting_what_finded(result, css_bttns_small)
+    css_buttons = soup.find_all(class_=re.compile("button"))
+
+    buttons = [html_buttons, submit_buttons, reset_buttons, button_buttons, css_bttns_small, css_buttons]
+
+    return buttons
+
+def calculating_buttons(buttons):
+    flat_buttons = list(itertools.chain(*buttons))
+    number_of_buttons = len(flat_buttons)
+
+    return number_of_buttons
+
+def deleting_what_finded(soup, button):
+    for i in range(len(button)):
+        soup= soup.replace(button[i], '')
+
+    return soup
+
 
 def bubble_sort(list, websites):
     for i in range(0, len(list) - 1):
