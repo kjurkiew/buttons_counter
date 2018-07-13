@@ -1,4 +1,4 @@
-# task_2
+# buttons_counter
 
 Script, that calculate numer of buttons on website.
 
@@ -9,7 +9,3 @@ Example:
 ```
 buttonz-counter.py files_with_websites counted_websites.csv
 ```
-
-### Packages
-
-re, requests, bs4, itertools, sys
